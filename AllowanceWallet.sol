@@ -80,6 +80,10 @@ contract AllowanceWallet is Ownable {
         withdrawFromWalletBalance(addr, address(this).balance);
     }
     
+    function renounceOwnership() public override view onlyOwner {
+        revert("Can't renounce ownership");
+    }
+    
     receive () external payable {
         emit MoneyReceived(msg.sender, msg.value);
     }
