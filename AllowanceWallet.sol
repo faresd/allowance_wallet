@@ -1,8 +1,11 @@
 pragma solidity ^0.8.4;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/math/SafeMath.sol";
 
 contract AllowanceWallet is Ownable {
+    using SafeMath for uint;
+
     struct Allowance {
         uint allowanceAmount;
         uint allowancePeriodInDays;
@@ -12,7 +15,6 @@ contract AllowanceWallet is Ownable {
     
     mapping(address => Allowance) allowances;
     
-    // Events
     event AllowanceCreated(address indexed addr, Allowance newAllowance);
     event AllowanceDeleted(address indexed addr);
     event AllowanceChanged(address indexed addr, Allowance newAllowance);
@@ -26,7 +28,7 @@ contract AllowanceWallet is Ownable {
         // Initialize new allowance
         Allowance memory allowance;
         allowance.allowanceAmount = allowanceAmount;
-        allowance.allowancePeriodInDays = allowancePeriodInDays * 1 days;
+        allowance.allowancePeriodInDays = allowancePeriodInDays.mul(1 days);
         allowance.whenLastAllowance = block.timestamp;
         allowance.unspentAllowance = allowanceAmount;
         
@@ -54,14 +56,14 @@ contract AllowanceWallet is Ownable {
         require(address(this).balance >= amount, "Wallet balance too low to pay allowance");
         
         // Calculate and update unspent allowance
-        uint numAllowances = (block.timestamp - allowances[msg.sender].whenLastAllowance) / allowances[msg.sender].allowancePeriodInDays;
-        allowances[msg.sender].unspentAllowance += allowances[msg.sender].allowanceAmount * numAllowances;
-        allowances[msg.sender].whenLastAllowance += numAllowances * 1 days;
+        uint numAllowances = block.timestamp.sub(allowances[msg.sender].whenLastAllowance).div(allowances[msg.sender].allowancePeriodInDays);
+        allowances[msg.sender].unspentAllowance = allowances[msg.sender].allowanceAmount.mul(numAllowances).add(allowances[msg.sender].unspentAllowance);
+        allowances[msg.sender].whenLastAllowance = numAllowances.mul(1 days).add(allowances[msg.sender].whenLastAllowance);
         
         // Pay allowance
         require(allowances[msg.sender].unspentAllowance >= amount, "You asked for more allowance than you're owed'");
         payable(msg.sender).transfer(amount);
-        allowances[msg.sender].unspentAllowance -= amount;
+        allowances[msg.sender].unspentAllowance = allowances[msg.sender].unspentAllowance.sub(amount);
         
         emit MoneySent(msg.sender, amount);
         emit AllowanceChanged(msg.sender, allowances[msg.sender]);
