@@ -3,7 +3,6 @@ pragma solidity ^0.8.4;
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
 
 contract AllowanceWallet is Ownable {
-    
     struct Allowance {
         uint allowanceAmount;
         uint allowancePeriodInDays;
@@ -13,6 +12,8 @@ contract AllowanceWallet is Ownable {
     
     mapping(address => Allowance) allowances;
     
+    event AllowanceChanged(address indexed addr, Allowance newAllowance);
+
     function addAllowance(address addr, uint allowanceAmount, uint allowancePeriodInDays) public onlyOwner {
         require(allowances[addr].allowanceAmount == 0, "Allowance already exists");
         require(address(this).balance >= allowanceAmount, "Wallet balance too low to add allowance");
@@ -25,6 +26,7 @@ contract AllowanceWallet is Ownable {
         allowance.unspentAllowance = allowanceAmount;
         
         allowances[addr] = allowance;
+        emit AllowanceChanged(addr, allowance);
     }
     
     function removeAllowance(address payable addr) public onlyOwner {
@@ -37,6 +39,7 @@ contract AllowanceWallet is Ownable {
         }
         
         delete allowances[addr];
+        emit AllowanceChanged(addr, allowance);
     }
     
     function getPaidAllowance(uint amount) public {
@@ -52,6 +55,8 @@ contract AllowanceWallet is Ownable {
         require(allowances[msg.sender].unspentAllowance >= amount, "You asked for more allowance than you're owed'");
         payable(msg.sender).transfer(amount);
         allowances[msg.sender].unspentAllowance -= amount;
+
+        emit AllowanceChanged(addr, allowance);
     }
     
     function withdrawFromWalletBalance(address payable addr, uint amount) public onlyOwner {
