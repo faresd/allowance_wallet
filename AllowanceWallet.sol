@@ -1,8 +1,8 @@
 pragma solidity ^0.8.4;
 
-import "./IOwner.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
 
-contract AllowanceWallet is IOwner {
+contract AllowanceWallet is Ownable {
     
     struct Allowance {
         uint allowanceAmount;
@@ -12,7 +12,6 @@ contract AllowanceWallet is IOwner {
     }
     
     mapping(address => Allowance) allowances;
-    
     
     function addAllowance(address addr, uint allowanceAmount, uint allowancePeriodInDays) public onlyOwner {
         require(allowances[addr].allowanceAmount == 0, "Allowance already exists");
