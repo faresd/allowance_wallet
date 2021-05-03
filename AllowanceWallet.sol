@@ -12,7 +12,12 @@ contract AllowanceWallet is Ownable {
     
     mapping(address => Allowance) allowances;
     
+    // Events
+    event AllowanceCreated(address indexed addr, Allowance newAllowance);
+    event AllowanceDeleted(address indexed addr);
     event AllowanceChanged(address indexed addr, Allowance newAllowance);
+    event MoneyReceived(address indexed addr, uint amount);
+    event MoneySent(address indexed addr, uint amount);
 
     function addAllowance(address addr, uint allowanceAmount, uint allowancePeriodInDays) public onlyOwner {
         require(allowances[addr].allowanceAmount == 0, "Allowance already exists");
@@ -26,7 +31,7 @@ contract AllowanceWallet is Ownable {
         allowance.unspentAllowance = allowanceAmount;
         
         allowances[addr] = allowance;
-        emit AllowanceChanged(addr, allowance);
+        emit AllowanceCreated(addr, allowance);
     }
     
     function removeAllowance(address payable addr) public onlyOwner {
@@ -39,7 +44,9 @@ contract AllowanceWallet is Ownable {
         }
         
         delete allowances[addr];
-        emit AllowanceChanged(addr, allowance);
+        
+        emit MoneySent(addr, allowances[addr].unspentAllowance);
+        emit AllowanceDeleted(addr);
     }
     
     function getPaidAllowance(uint amount) public {
@@ -55,13 +62,16 @@ contract AllowanceWallet is Ownable {
         require(allowances[msg.sender].unspentAllowance >= amount, "You asked for more allowance than you're owed'");
         payable(msg.sender).transfer(amount);
         allowances[msg.sender].unspentAllowance -= amount;
-
-        emit AllowanceChanged(addr, allowance);
+        
+        emit MoneySent(msg.sender, amount);
+        emit AllowanceChanged(msg.sender, allowances[msg.sender]);
     }
     
     function withdrawFromWalletBalance(address payable addr, uint amount) public onlyOwner {
         require(address(this).balance >= amount, "Wallet balance too low to fund withdraw");
         addr.transfer(amount);
+        
+        emit MoneySent(msg.sender, amount);
     }
     
     function withdrawAllFromWalletBalance(address payable addr) public onlyOwner {
@@ -69,6 +79,6 @@ contract AllowanceWallet is Ownable {
     }
     
     receive () external payable {
-        
+        emit MoneyReceived(msg.sender, msg.value);
     }
 }
