@@ -5,5 +5,5 @@
 
 
 A usecase to implement
-I have an idea regarding the #AllowanceWallet, I want to apply something similar to a Noble prize, where I want to put to stake an amount of ~100 USD, and then send a small portion of the stake reward every year to a public address that I want to make available online to everyone.
-By the time (after my death) this sent money will start to gain value because of the accumulation of staking gains and Ethereum scarcity.
+I have an idea regarding the #AllowanceWallet, I want to apply something similar to a Noble prize, where I want to stake an amount of ~100 USD for exmaple, and then send a small portion of the staked reward every year to a public address that I want to make available online to everyone.
+By the time (long time after my death) this sent money will start to gain value because of the accumulation of staking gains and Ethereum scarcity (if Etherum stats functional after 200 years).
